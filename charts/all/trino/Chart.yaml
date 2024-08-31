@@ -1,0 +1,34 @@
+apiVersion: v2
+name: trino
+description: A Helm chart for Kubernetes
+
+version: 1.0.0
+
+dependencies:
+  - name: hive-postgresql
+    version: "1.0.0"
+    repository: "file://charts/01-hive-postgresql"
+    condition: subcharts.hive-postgresql
+    tags:
+      - hive-postgresql
+
+  - name: hive-metastore
+    version: "1.0.0"
+    repository: "file://charts/02-hive-metastore"
+    condition: subcharts.hive-metastore
+    tags:
+      - hive-metastore
+
+  - name: coordinator
+    version: "1.0.0"
+    repository: "file://charts/03-coordinator"
+    condition: subcharts.coordinator
+    tags:
+      - coordinator
+
+  - name: worker
+    version: "1.0.0"
+    repository: "file://charts/04-worker"
+    condition: subcharts.worker
+    tags:
+      - worker

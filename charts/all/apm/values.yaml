@@ -1,0 +1,578 @@
+nameOverride: ""
+
+subcharts:
+  ingestion-traces: true
+  ingestion-logs: true
+  ingestion-metrics: true
+  query: true
+  dashboard: true
+
+#############################################################
+
+ingestion-traces:
+  replicaCount: 1
+  
+  image:
+    registry: quay.io
+    username: zagaos
+    name: apm-ingestion-pyiceberg
+    pullPolicy: IfNotPresent
+    tag: ecfa9ce
+    strategy: ""
+
+  imagePullSecrets: []
+  
+  nameOverride: ""
+  
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+    # runAsGroup: 1000
+
+  serviceAccount:
+    create: false
+    automount: false
+    annotations: {}
+    name: ""
+
+  ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+      # subdomainName: infra-query-insecure
+      # tls:
+      #   enabled: false
+        # termination: edge
+        # insecureEdgeTerminationPolicy: Redirect
+
+  # routes:
+  #   enabled: true
+
+  # ingress:
+  #   enabled: false
+  #   domain: apps.zagaopenshift.zagaopensource.com
+  #   annotations:
+  #     cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+
+  service:
+    - enabled: true
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+
+  configmapEnv:
+    - name: 
+      mount: ""
+      mountPath: ""
+      filePath: false
+      data:
+        BUCKET_NAME: 's3a://observability-traces/traces'
+        CONSUMER_GROUP_ID: apmtraces
+        KAFKA_TOPIC: apmtraces
+        NAME_SPACE: apm_traces
+        SCRIPT_TO_RUN: traces
+        TABLE_NAME: traces
+        KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+        URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+        S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+        ACCESS_KEY: minioAdmin
+        SECRET_KEY: minio1234
+
+  probes:
+    readiness:
+    liveness:
+
+  volumes: {}
+    # - type: PersistentVolumeClaim
+    #   apiVersion: v1
+    #   accessModes: ReadWriteOnce
+    #   volumeName: ""
+    #   mountPath: /storage
+    #   storageSize: "80Gi"
+    # - type: EmptyDir
+    #   volumeName: ""
+    #   mountPath: /empty-dir
+
+  resources: {}
+    # limits:
+    #   cpu: 600m
+    #   memory: 1128Mi
+    # requests:
+    #   cpu: 600m
+    #   memory: 1128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+#############################################################
+
+ingestion-logs:
+
+  replicaCount: 1
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: apm-ingestion-pyiceberg
+    pullPolicy: IfNotPresent
+    tag: ecfa9ce
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext:
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+    # runAsGroup: 1000
+
+  serviceAccount:
+    create: false
+    automount: false
+    annotations: {}
+    name: ""
+
+  ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+      # subdomainName: infra-query-insecure
+      # tls:
+      #   enabled: false
+        # termination: edge
+        # insecureEdgeTerminationPolicy: Redirect
+
+  # routes:
+  #   enabled: true
+
+  # ingress:
+  #   enabled: false
+  #   domain: apps.zagaopenshift.zagaopensource.com
+  #   annotations:
+  #     cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+
+  service:
+    - enabled: true
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+
+  configmapEnv:
+    - name: 
+      mount: ""
+      mountPath: ""
+      filePath: false
+      data:
+        BUCKET_NAME: 's3a://observability-logs/logs'
+        CONSUMER_GROUP_ID: apmlogs
+        KAFKA_TOPIC: apmlogs
+        NAME_SPACE: apm_logs
+        SCRIPT_TO_RUN: logs
+        TABLE_NAME: logs
+        KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+        URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+        S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+        ACCESS_KEY: minioAdmin
+        SECRET_KEY: minio1234
+
+  probes:
+    readiness:
+    liveness:
+
+  volumes: {}
+    # - type: PersistentVolumeClaim
+    #   apiVersion: v1
+    #   accessModes: ReadWriteOnce
+    #   volumeName: ""
+    #   mountPath: /storage
+    #   storageSize: "80Gi"
+    # - type: EmptyDir
+    #   volumeName: ""
+    #   mountPath: /empty-dir
+
+  resources: {}
+    # limits:
+    #   cpu: 600m
+    #   memory: 1128Mi
+    # requests:
+    #   cpu: 600m
+    #   memory: 1128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+#############################################################
+
+ingestion-metrics:
+
+  replicaCount: 1
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: apm-ingestion-pyiceberg
+    pullPolicy: IfNotPresent
+    tag: ecfa9ce
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  serviceAccount:
+    create: false
+    automount: false
+    annotations: {}
+    name: ""
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+    # runAsGroup: 1000
+
+  ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+      # subdomainName: infra-query-insecure
+      # tls:
+      #   enabled: false
+        # termination: edge
+        # insecureEdgeTerminationPolicy: Redirect
+
+  # routes:
+  #   enabled: true
+
+  # ingress:
+  #   enabled: false
+  #   domain: apps.zagaopenshift.zagaopensource.com
+  #   annotations:
+  #     cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+
+  service:
+    - enabled: true
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+
+  configmapEnv:
+    - name: 
+      mount: ""
+      mountPath: ""
+      filePath: false
+      data:
+        BUCKET_NAME: 's3a://observability-metrics/metrics'
+        CONSUMER_GROUP_ID: apm_metric
+        KAFKA_TOPIC: apmmetrics
+        NAME_SPACE: apm_metrics
+        SCRIPT_TO_RUN: metrics
+        TABLE_NAME: metric
+        KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+        URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+        S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+        ACCESS_KEY: minioAdmin
+        SECRET_KEY: minio1234
+
+  probes:
+    readiness:
+    liveness:
+
+  volumes: {}
+    # - type: PersistentVolumeClaim
+    #   apiVersion: v1
+    #   accessModes: ReadWriteOnce
+    #   volumeName: ""
+    #   mountPath: /storage
+    #   storageSize: "80Gi"
+    # - type: EmptyDir
+    #   volumeName: ""
+    #   mountPath: /empty-dir
+
+  resources: {}
+    # limits:
+    #   cpu: 600m
+    #   memory: 1128Mi
+    # requests:
+    #   cpu: 600m
+    #   memory: 1128Mi
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+#############################################################
+
+query:
+
+  replicaCount: 1
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: apm-query-pyiceberg
+    pullPolicy: IfNotPresent
+    tag: ce4cdad
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+    # runAsGroup: 1000
+
+  serviceAccount:
+    create: false
+    automount: false
+    annotations: {}
+    name: ""
+
+  ports:
+    - name: 8000-tcp
+      subdomainName: infra-query-insecure
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+      tls:
+        enabled: false
+        # termination: edge
+        # insecureEdgeTerminationPolicy: Redirect
+
+  service:
+    - enabled: true
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+    # - name: trino-coordinator-secret
+    #   mount: ""
+    #   mountPath: ""
+    #   data:
+
+  configmapEnv:
+    - name: ""
+      mount: ""
+      mountPath: ""
+      data:
+        HIVE_THRIFT_URI: thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083
+        MINIO_ACCSESS_KEY_ID: minioAdmin
+        MINIO_SECRET_ACCSESS_KEY: minio1234
+        PY_IO_IMPL: pyiceberg.io.pyarrow.PyArrowFileIO
+        MINIO_ENDPOINT: http://minio.observability-datamesh.svc.cluster.local:9000
+        NODE_TABLE_NAME: node
+        NODE_NAME_SPACE: infra_node
+        POD_TABLE_NAME: pod
+        POD_NAME_SPACE: infra_pod
+        EVENT_NAME_SPACE: infra_event
+        EVENT_TABLE_NAME: event
+
+  probes:
+    readiness:
+    liveness:
+
+  volumes: {}
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  routes:
+    enabled: true
+
+  ingress:
+    enabled: false
+    domain: apps.zagaopenshift.zagaopensource.com
+    annotations:
+      cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+#############################################################
+
+dashboard:
+
+  replicaCount: 1
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: apm-dashboard-observai
+    pullPolicy: IfNotPresent
+    tag: 2675d6f
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+    # fsGroup: 2000
+
+  securityContext: {}
+    # capabilities:
+    #   drop:
+    #   - ALL
+    # readOnlyRootFilesystem: true
+    # runAsNonRoot: true
+    # runAsUser: 1000
+    # runAsGroup: 1000
+
+  serviceAccount:
+    create: false
+    automount: false
+    annotations: {}
+    name: ""
+
+  ports:
+    - name: 8080-tcp
+      subdomainName: infra-dashboard
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+      tls:
+        enabled: false
+        # termination: edge
+        # insecureEdgeTerminationPolicy: Redirect
+
+  service:
+    - enabled: true
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+    # - name: trino-coordinator-secret
+    #   mount: ""
+    #   mountPath: ""
+    #   data:
+
+  configmapEnv: {}
+
+  probes:
+    readiness:
+    liveness:
+
+  volumes: {}
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  routes:
+    enabled: true
+
+  ingress:
+    enabled: false
+    domain: apps.zagaopenshift.zagaopensource.com
+    annotations:
+      cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
