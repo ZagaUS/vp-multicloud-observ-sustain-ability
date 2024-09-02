@@ -3,6 +3,8 @@ clusterGroup:
   isHubCluster: true
   namespaces:
   - open-cluster-management
+  - amq-streams
+  - open-telemetry-collector
   - vault
   - golang-external-secrets
   - config-demo
@@ -16,13 +18,13 @@ clusterGroup:
       channel: release-2.11
       #csv: advanced-cluster-management.v2.6.1
     kafka:
-      name: advanced-cluster-management
-      namespace: open-cluster-management
+      name: amq-streams
+      namespace: amq-streams
       channel: release-2.11
       #csv: advanced-cluster-management.v2.6.1
     opentelemetry:
-      name: advanced-cluster-management
-      namespace: open-cluster-management
+      name: open-telemetry-collector
+      namespace: open-telemetry-collector
       channel: release-2.11
       #csv: advanced-cluster-management.v2.6.1
   projects:
