@@ -11,6 +11,8 @@ clusterGroup:
   - hello-world
   - observability-datamesh
   - observability
+  - openshift-operators
+  - openshift-opentelemetry-operator
   subscriptions:
     acm:
       name: advanced-cluster-management
@@ -19,13 +21,13 @@ clusterGroup:
       #csv: advanced-cluster-management.v2.6.1
     kafka:
       name: amq-streams
-      namespace: amq-streams
-      channel: release-2.11
+      namespace: openshift-operators
+      channel: amqstreams.v2.7.0-3
       #csv: advanced-cluster-management.v2.6.1
     opentelemetry:
       name: open-telemetry-collector
-      namespace: open-telemetry-collector
-      channel: release-2.11
+      namespace: openshift-opentelemetry-operator
+      channel: opentelemetry-operator.v0.102.0-3
       #csv: advanced-cluster-management.v2.6.1
   projects:
   - hub
@@ -33,8 +35,6 @@ clusterGroup:
   - hello-world
   - observability-datamesh
   - observability
-  - observability-amq-streams
-  - observability-otel-collector
   
   # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
   # We can use self-referential variables because the chart calls the tpl function with these variables defined
