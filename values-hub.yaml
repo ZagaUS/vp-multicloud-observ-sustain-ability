@@ -3,8 +3,8 @@ clusterGroup:
   isHubCluster: true
   namespaces:
   - open-cluster-management
-  - amq-streams
-  - open-telemetry-collector
+  - observability-amq-streams
+  - observability-otel-collector
   - vault
   - golang-external-secrets
   - config-demo
@@ -33,6 +33,9 @@ clusterGroup:
   - hello-world
   - observability-datamesh
   - observability
+  - observability-amq-streams
+  - observability-otel-collector
+  
   # Explicitly mention the cluster-state based overrides we plan to use for this pattern.
   # We can use self-referential variables because the chart calls the tpl function with these variables defined
   sharedValueFiles:
