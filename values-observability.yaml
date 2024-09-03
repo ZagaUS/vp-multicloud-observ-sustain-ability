@@ -36,6 +36,21 @@ clusterGroup:
       namespace: hello-world
       project: hello-world
       path: charts/all/hello-world
+    datamesh-minio:
+      name: minio
+      namespace: observability-datamesh
+      project: observability-datamesh
+      path: charts/all/minio
+    datamesh-trino:
+      name: trino
+      namespace: observability-datamesh
+      project: observability-datamesh
+      path: charts/all/trino
+    observability:
+      name: observability
+      namespace: observability
+      project: observability
+      path: charts/all/apm
   imperative:
     # NOTE: We *must* use lists and not hashes. As hashes lose ordering once parsed by helm
     # The default schedule is every 10 minutes: imperative.schedule
