@@ -6,6 +6,6 @@ global:
     syncPolicy: Automatic
     installPlanApproval: Automatic
 main:
-  clusterGroupName: hub
+  clusterGroupName: observability-hub
   multiSourceConfig:
     enabled: true
