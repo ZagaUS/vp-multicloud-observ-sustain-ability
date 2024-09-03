@@ -118,10 +118,10 @@ clusterGroup:
       # verbosity: "-v"
   managedClusterGroups:
     exampleRegion:
-      name: group-one
+      name: observability
       acmlabels:
       - name: clusterGroup
-        value: group-one
+        value: observability
       helmOverrides:
       - name: clusterGroup.isHubCluster
         value: false
