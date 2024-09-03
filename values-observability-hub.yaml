@@ -3,16 +3,14 @@ clusterGroup:
   isHubCluster: true
   namespaces:
   - open-cluster-management
-  - observability-amq-streams
-  - observability-otel-collector
+  - openshift-operators
+  - openshift-opentelemetry-operator
   - vault
   - golang-external-secrets
   - config-demo
   - hello-world
   - observability-datamesh
   - observability
-  - openshift-operators
-  - openshift-opentelemetry-operator
   subscriptions:
     acm:
       name: advanced-cluster-management
