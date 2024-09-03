@@ -1,5 +1,5 @@
 clusterGroup:
-  name: hub
+  name: observability-hub
   isHubCluster: true
   namespaces:
   - open-cluster-management
@@ -30,7 +30,7 @@ clusterGroup:
       channel: opentelemetry-operator.v0.102.0-3
       #csv: advanced-cluster-management.v2.6.1
   projects:
-  - hub
+  - observability-hub
   - config-demo
   - hello-world
   - observability-datamesh
@@ -60,7 +60,7 @@ clusterGroup:
     acm:
       name: acm
       namespace: open-cluster-management
-      project: hub
+      project: observability-hub
       path: common/acm
       ignoreDifferences:
       - group: internal.open-cluster-management.io
@@ -70,12 +70,12 @@ clusterGroup:
     vault:
       name: vault
       namespace: vault
-      project: hub
+      project: observability-hub
       path: common/hashicorp-vault
     golang-external-secrets:
       name: golang-external-secrets
       namespace: golang-external-secrets
-      project: hub
+      project: observability-hub
       path: common/golang-external-secrets
     config-demo:
       name: config-demo
