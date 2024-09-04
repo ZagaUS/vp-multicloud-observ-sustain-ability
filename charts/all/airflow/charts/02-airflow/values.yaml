@@ -1,0 +1,405 @@
+initContainers:
+  - containerName: "wait-for-airflow-migrations"
+
+    image:
+      registry: quay.io
+      username: osclimate
+      name: airflow
+      pullPolicy: IfNotPresent
+      tag: 2.7.3-omdingest-1.2.2
+
+    ports: {}
+
+    service: {}
+
+    routes: {}
+
+    ingress: {}
+
+    args:
+      - bash
+      - '-c'
+      - |
+        exec airflow db migrate ; airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin ;
+
+    env:
+      - name: AIRFLOW__CORE__EXECUTOR
+        value: LocalExecutor
+      - name: AIRFLOW__CORE__LOAD_EXAMPLES
+        value: 'False'
+      - name: DB_HOST
+        value: airflow-postgresql    
+      - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+        value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
+      - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
+        value: 'True'
+      - name: AIRFLOW__API__AUTH_BACKENDS
+        value: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      - name: AIRFLOW__OPENMETADATA_AIRFLOW_APIS__DAG_GENERATED_CONFIGS
+        value: /opt/airflow/dag_generated_configs
+      - name: AIRFLOW__LINEAGE__BACKEND
+        value: airflow_provider_openmetadata.lineage.backend.OpenMetadataLineageBackend
+      - name: AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME
+        value: airflow
+      - name: AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE
+        value: openmetadata
+      - name: AIRFLOW__LINEAGE__JWT_TOKEN
+        value: eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZ1wiIiwic3ViIjoiaW5nZXN0aW9uLWJvdCIsImVtYWlsIjoiaW5nZXN0aW9uLWJvdEBvcGVubWV0YWRhdGEub3JnIiwiaXNCb3QiOnRydWUsInRva2VuVHlwZSI6IkJPVCIsImlhdCI6MTcxNDM1ODQ3MSwiZXhwIjpudWxsfQ.Qj_U1X9vykqfw7fCdEPqQMdeR2__dGk9OJl8bMjAils4XRCJtoQ4YcttPavz9AQ4eHK4Uwb7Bep9PKKYsd7j7-DGJbzB5Yvpz-mumJ8oXoLgMfyT41OB6BSNR65_34Z2xBJOY-Sxi9ydP6n5XcqARigR63iagEv9AmuPWNuDyYt-LX5KesOc4cwUnCP_4YojE-uz3RtnbY3hlfcV5bdhhDYj1W3UrMqxy8PgfK54YpXTZt2NhcNkWd3Iae0Z9MYXtBZYJ6lBjRi3Z8LS3R2YEN-dfFdYzgZCxSFN5oVGEr3uuTxrgj3c3paXw3rSDutymSQ9S86s2HjYLVhi0EckEQ
+      - name: AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT
+        value: 'http://openmetadata.$(NAMESPACE).svc.cluster.local:8585/api'
+      - name: AIRFLOW_CONN_S3
+        value: 'aws://minioAdmin:minio1234@/?endpoint_url=http:%2F%2Fminio.$(NAMESPACE).svc.cluster.local:9000'
+      - name: AIRFLOW_CONN_TRINO_CONNECTION
+        value: 'trino://admin:@trino.$(NAMESPACE).svc.cluster.local:8080/'
+      - name: AIRFLOW__WEBSERVER__RBAC
+        value: 'True'
+      - name: AIRFLOW__WEBSERVER__AUTHENTICATE
+        value: 'True'
+
+    secretsEnv: {}
+
+    configmapEnv: {}
+
+    volumes: {}
+
+    resources: {}
+
+    securityContext: {}
+  
+  - containerName: "add-airflow-admin"
+
+    image:
+      registry: quay.io
+      username: osclimate
+      name: airflow
+      pullPolicy: IfNotPresent
+      tag: 2.7.3-omdingest-1.2.2
+
+    ports: {}
+
+    service: {}
+
+    routes: {}
+
+    ingress: {}
+
+    args:
+      - bash
+      - '-c'
+      - |
+        exec airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin ;
+
+    env:
+      - name: AIRFLOW__CORE__EXECUTOR
+        value: LocalExecutor
+      - name: AIRFLOW__CORE__LOAD_EXAMPLES
+        value: 'False'
+      - name: DB_HOST
+        value: airflow-postgresql    
+      - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+        value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
+      - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
+        value: 'True'
+      - name: AIRFLOW__API__AUTH_BACKENDS
+        value: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      - name: AIRFLOW__OPENMETADATA_AIRFLOW_APIS__DAG_GENERATED_CONFIGS
+        value: /opt/airflow/dag_generated_configs
+      - name: AIRFLOW__LINEAGE__BACKEND
+        value: airflow_provider_openmetadata.lineage.backend.OpenMetadataLineageBackend
+      - name: AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME
+        value: airflow
+      - name: AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE
+        value: openmetadata
+      - name: AIRFLOW__LINEAGE__JWT_TOKEN
+        value: eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZ1wiIiwic3ViIjoiaW5nZXN0aW9uLWJvdCIsImVtYWlsIjoiaW5nZXN0aW9uLWJvdEBvcGVubWV0YWRhdGEub3JnIiwiaXNCb3QiOnRydWUsInRva2VuVHlwZSI6IkJPVCIsImlhdCI6MTcxNDM1ODQ3MSwiZXhwIjpudWxsfQ.Qj_U1X9vykqfw7fCdEPqQMdeR2__dGk9OJl8bMjAils4XRCJtoQ4YcttPavz9AQ4eHK4Uwb7Bep9PKKYsd7j7-DGJbzB5Yvpz-mumJ8oXoLgMfyT41OB6BSNR65_34Z2xBJOY-Sxi9ydP6n5XcqARigR63iagEv9AmuPWNuDyYt-LX5KesOc4cwUnCP_4YojE-uz3RtnbY3hlfcV5bdhhDYj1W3UrMqxy8PgfK54YpXTZt2NhcNkWd3Iae0Z9MYXtBZYJ6lBjRi3Z8LS3R2YEN-dfFdYzgZCxSFN5oVGEr3uuTxrgj3c3paXw3rSDutymSQ9S86s2HjYLVhi0EckEQ
+      - name: AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT
+        value: 'http://openmetadata.$(NAMESPACE).svc.cluster.local:8585/api'
+      - name: AIRFLOW_CONN_S3
+        value: 'aws://minioAdmin:minio1234@/?endpoint_url=http:%2F%2Fminio.$(NAMESPACE).svc.cluster.local:9000'
+      - name: AIRFLOW_CONN_TRINO_CONNECTION
+        value: 'trino://admin:@trino.$(NAMESPACE).svc.cluster.local:8080/'
+      - name: AIRFLOW__WEBSERVER__RBAC
+        value: 'True'
+      - name: AIRFLOW__WEBSERVER__AUTHENTICATE
+        value: 'True'
+
+    secretsEnv: {}
+
+    configmapEnv: {}
+
+    volumes: {}
+
+    resources: {}
+
+    securityContext: {}
+
+  - containerName: "deploydagsfroms3"
+
+    image:
+      registry: quay.io
+      username: osclimate
+      name: minioclient
+      pullPolicy: IfNotPresent
+      tag: '1.7'
+
+    ports: {}
+
+    service: {}
+
+    routes: {}
+
+    ingress: {}
+
+    args: {}
+
+    env:
+      - name: DEPLOYMENT_TYPE
+        value: init
+      - name: S3_BUCKET_URL
+        value: 'http://minio:9000'
+
+    secretsEnv:
+      - name: dag-deployment
+        data:
+          S3_ACCESS_KEY: minioAdmin
+          S3_SECRET_KEY: minio1234
+
+    configmapEnv: {}
+
+    volumes: {}
+
+    resources: {}
+
+    securityContext: {}
+
+########################################################
+
+containers: 
+
+  - containerName: "airflow-web"
+
+    image:
+      registry: quay.io
+      username: osclimate
+      name: airflow
+      pullPolicy: IfNotPresent
+      tag: '2.7.3-omdingest-1.2.2'
+
+    ports:
+      - name: http
+        port: 8080
+        protocol: TCP
+        targetPort: 8080
+        subdomainName: airflow-web
+        ingressRules:
+          - host: airflow-web.example.com
+            path: /
+            pathType: Prefix
+        routePolicy:
+          termination: edge
+          insecureEdgeTerminationPolicy: Redirect
+
+    service:
+      - enabled: true
+        serviceType: ClusterIP
+      - enabled: false
+        serviceType: LoadBalancer
+
+    routes:
+      enabled: true
+      tls: true
+      annotations: {}
+
+    ingress:
+      enabled: false
+      className: ""
+      tls: false
+      annotations:
+        cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+
+    args:
+      - bash
+      - '-c'
+      - exec airflow webserver
+
+    env:
+      - name: AIRFLOW__CORE__EXECUTOR
+        value: LocalExecutor
+      - name: AIRFLOW__LOGGING__LOGGING_LEVEL
+        value: DEBUG
+      - name: AIRFLOW__CORE__LOAD_EXAMPLES
+        value: 'False'
+      - name: CURL_CA_BUNDLE
+        value: ''
+      - name: DB_HOST
+        value: airflow-postgresql
+      - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+        value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
+      - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
+        value: 'True'
+      - name: AIRFLOW__API__AUTH_BACKENDS
+        value: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      - name: AIRFLOW__OPENMETADATA_AIRFLOW_APIS__DAG_GENERATED_CONFIGS
+        value: /opt/airflow/dag_generated_configs
+      - name: AIRFLOW__LINEAGE__BACKEND
+        value: airflow_provider_openmetadata.lineage.backend.OpenMetadataLineageBackend
+      - name: AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME
+        value: airflow
+      - name: AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE
+        value: openmetadata
+      - name: AIRFLOW__LINEAGE__JWT_TOKEN
+        value: eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZ1wiIiwic3ViIjoiaW5nZXN0aW9uLWJvdCIsImVtYWlsIjoiaW5nZXN0aW9uLWJvdEBvcGVubWV0YWRhdGEub3JnIiwiaXNCb3QiOnRydWUsInRva2VuVHlwZSI6IkJPVCIsImlhdCI6MTcxNDM1ODQ3MSwiZXhwIjpudWxsfQ.Qj_U1X9vykqfw7fCdEPqQMdeR2__dGk9OJl8bMjAils4XRCJtoQ4YcttPavz9AQ4eHK4Uwb7Bep9PKKYsd7j7-DGJbzB5Yvpz-mumJ8oXoLgMfyT41OB6BSNR65_34Z2xBJOY-Sxi9ydP6n5XcqARigR63iagEv9AmuPWNuDyYt-LX5KesOc4cwUnCP_4YojE-uz3RtnbY3hlfcV5bdhhDYj1W3UrMqxy8PgfK54YpXTZt2NhcNkWd3Iae0Z9MYXtBZYJ6lBjRi3Z8LS3R2YEN-dfFdYzgZCxSFN5oVGEr3uuTxrgj3c3paXw3rSDutymSQ9S86s2HjYLVhi0EckEQ
+      - name: AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT
+        value: 'http://openmetadata.$(NAMESPACE).svc.cluster.local:8585/api'
+      - name: AIRFLOW_CONN_S3
+        value: 'aws://minioAdmin:minio1234@/?endpoint_url=http:%2F%2Fminio.$(NAMESPACE).svc.cluster.local:9000'
+      - name: AIRFLOW_CONN_TRINO_CONNECTION
+        value: 'trino://admin:@trino.$(NAMESPACE).svc.cluster.local:8080/'
+      - name: AIRFLOW__WEBSERVER__RBAC
+        value: 'True'
+      - name: AIRFLOW__WEBSERVER__AUTHENTICATE
+        value: 'True'
+      - name: AIRFLOW__WEBSERVER__WEB_SERVER_MASTER_TIMEOUT
+        value: '300'
+      - name: AIRFLOW__WEBSERVER__WORKER_REFRESH_BATCH_SIZE
+        value: '0'
+      - name: AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL
+        value: '0'
+
+    secretsEnv: {}
+
+    configmapEnv: {}
+
+    volumes: {}
+
+    resources: {}
+
+    securityContext: {}
+
+
+  - containerName: "scheduler"
+
+    image:
+      registry: quay.io
+      username: osclimate
+      name: airflow
+      pullPolicy: IfNotPresent
+      tag: 2.7.3-omdingest-1.2.2
+
+    ports: {}
+
+    service: {}
+
+    routes: {}
+
+    ingress: {}
+
+    args:
+      - bash
+      - '-c'
+      - exec airflow scheduler
+
+    env:
+      - name: AIRFLOW__CORE__EXECUTOR
+        value: LocalExecutor
+      - name: AIRFLOW__CORE__LOAD_EXAMPLES
+        value: 'False'
+      - name: DB_HOST
+        value: airflow-postgresql
+      - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
+        value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
+      - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
+        value: 'True'
+      - name: AIRFLOW__API__AUTH_BACKENDS
+        value: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+      - name: AIRFLOW__OPENMETADATA_AIRFLOW_APIS__DAG_GENERATED_CONFIGS
+        value: /opt/airflow/dag_generated_configs
+      - name: AIRFLOW__LINEAGE__BACKEND
+        value: airflow_provider_openmetadata.lineage.backend.OpenMetadataLineageBackend
+      - name: AIRFLOW__LINEAGE__AIRFLOW_SERVICE_NAME
+        value: airflow
+      - name: AIRFLOW__LINEAGE__AUTH_PROVIDER_TYPE
+        value: openmetadata
+      - name: AIRFLOW__LINEAGE__JWT_TOKEN
+        value: eyJraWQiOiJHYjM4OWEtOWY3Ni1nZGpzLWE5MmotMDI0MmJrOTQzNTYiLCJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJvcGVuLW1ldGFkYXRhLm9yZ1wiIiwic3ViIjoiaW5nZXN0aW9uLWJvdCIsImVtYWlsIjoiaW5nZXN0aW9uLWJvdEBvcGVubWV0YWRhdGEub3JnIiwiaXNCb3QiOnRydWUsInRva2VuVHlwZSI6IkJPVCIsImlhdCI6MTcxNDM1ODQ3MSwiZXhwIjpudWxsfQ.Qj_U1X9vykqfw7fCdEPqQMdeR2__dGk9OJl8bMjAils4XRCJtoQ4YcttPavz9AQ4eHK4Uwb7Bep9PKKYsd7j7-DGJbzB5Yvpz-mumJ8oXoLgMfyT41OB6BSNR65_34Z2xBJOY-Sxi9ydP6n5XcqARigR63iagEv9AmuPWNuDyYt-LX5KesOc4cwUnCP_4YojE-uz3RtnbY3hlfcV5bdhhDYj1W3UrMqxy8PgfK54YpXTZt2NhcNkWd3Iae0Z9MYXtBZYJ6lBjRi3Z8LS3R2YEN-dfFdYzgZCxSFN5oVGEr3uuTxrgj3c3paXw3rSDutymSQ9S86s2HjYLVhi0EckEQ
+      - name: AIRFLOW__LINEAGE__OPENMETADATA_API_ENDPOINT
+        value: 'http://openmetadata.$(NAMESPACE).svc.cluster.local:8585/api'
+      - name: AIRFLOW_CONN_S3
+        value: 'aws://minioAdmin:minio1234@/?endpoint_url=http:%2F%2Fminio.$(NAMESPACE).svc.cluster.local:9000'
+      - name: AIRFLOW_CONN_TRINO_CONNECTION
+        value: 'trino://admin:@trino.$(NAMESPACE).svc.cluster.local:8080/'
+      - name: AIRFLOW__WEBSERVER__RBAC
+        value: 'True'
+      - name: AIRFLOW__WEBSERVER__AUTHENTICATE
+        value: 'True'
+      - name: AIRFLOW__WEBSERVER__WEB_SERVER_MASTER_TIMEOUT
+        value: '300'
+      - name: AIRFLOW__WEBSERVER__WORKER_REFRESH_BATCH_SIZE
+        value: '0'
+      - name: AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL
+        value: '0'
+
+    secretsEnv: {}
+
+    configmapEnv: {}
+
+    volumes: {}
+
+    resources: {}
+
+    securityContext: {}
+
+############################################################
+
+strategy:
+  type: RollingUpdate
+
+replicaCount: 1
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+secretsEnv:
+  - name: airflow-postgresql
+    data:
+      DB_NAME: airflowdb
+      DB_USER: airflow
+      DB_PASS: airflow123$
+
+volumes:
+  - type: EmptyDir
+    volumeName: "mcconfig"
+    mountPath: /.mc
+  - type: EmptyDir
+    volumeName: "dags-data"
+    mountPath: /opt/airflow/dags
+  - type: EmptyDir
+    volumeName: "dags-generated-data"
+    mountPath: /opt/airflow/dag_generated_configs
+  - type: EmptyDir
+    volumeName: "dags-log"
+    mountPath: /opt/airflow/logs

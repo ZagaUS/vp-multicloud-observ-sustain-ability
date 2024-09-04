@@ -1,0 +1,79 @@
+{{- $chartName := .Chart.Name }}
+{{- $fullName := include "airflow.fullname" . }}
+
+{{- range .Values.containers }}
+  {{- $container := . }}
+  {{- range $container.service }}
+    {{- if .enabled }}
+      {{- $containerName := $container.containerName }}
+      {{- if not $containerName }}{{ $containerName = $fullName }}{{ end }}
+      {{- $serviceName := printf "%s-%s" (lower $containerName) (lower .serviceType) }}
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    {{- include "airflow.labels" $ | nindent 4 }}
+spec:
+  type: {{ .serviceType }}
+  ports:
+    {{- with $container.ports }}
+      {{- range . }}
+      - name: {{ .name }}
+        port: {{ .port }}
+        protocol: {{ .protocol }}
+        targetPort: {{ .targetPort }}
+      {{- end }}
+    {{- else }}
+      # Debugging to indicate no ports were found
+      {{- printf "No ports defined in template." | indent 2 }}
+    {{- end }}
+  selector:
+    {{- include "airflow.selectorLabels" $ | nindent 4 }}
+
+---
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+
+---
+
+{{- range .Values.initContainers }}
+  {{- $initContainer := . }}
+  {{- range $initContainer.service }}
+    {{- if .enabled }}
+      {{- $containerName := $initContainer.containerName }}
+      {{- if not $containerName }}{{ $containerName = $fullName }}{{ end }}
+      {{- $serviceName := printf "%s-%s" (lower $containerName) (lower .serviceType) }}
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName }}
+  labels:
+    {{- include "airflow.labels" $ | nindent 4 }}
+spec:
+  type: {{ .serviceType }}
+  ports:
+    {{- with $initContainer.ports }}
+      {{- range . }}
+      - name: {{ .name }}
+        port: {{ .port }}
+        protocol: {{ .protocol }}
+        targetPort: {{ .targetPort }}
+      {{- end }}
+    {{- else }}
+      # Debugging to indicate no ports were found
+      {{- printf "No ports defined in template." | indent 2 }}
+    {{- end }}
+  selector:
+    {{- include "airflow.selectorLabels" $ | nindent 4 }}
+
+---
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,191 @@
+{{- range .Values.containers }}
+  {{- $container := . }}
+  {{- if and (not $container.routes.enabled) $container.ingress.enabled }}
+    {{- $clusterIPServiceFound := false }}
+    {{- $serviceTypeMap := dict }}  # To store service types by service names
+    {{- $fullName := include "airflow.fullname" $ }}
+
+    {{- range .service }}
+      {{- if and .enabled (eq .serviceType "ClusterIP") }}
+        {{- $clusterIPServiceFound = true }}
+        # {{- $serviceName := include "airflow.fullname" $ }}
+        {{- $serviceName := printf "%s-%s" (lower $container.containerName) (lower .serviceType) }}
+        {{- $serviceType := .serviceType | lower }}
+        {{- $serviceTypeMap = merge $serviceTypeMap (dict $serviceName $serviceType) }}
+      {{- end }}
+    {{- end }}
+
+    {{- if $clusterIPServiceFound }}
+      {{- $ingressRules := dict }}
+      {{- $uniqueHosts := dict }}
+
+    {{- $ingressName := printf "%s-%s" (default $fullName $container.containerName | lower) "ingress" }}
+
+      {{- range .ports }}
+        {{- $port := .port }}
+        {{- $portName := .name | default "default" }}
+
+        {{- if .ingressRules }}
+          {{- range .ingressRules }}
+            {{- $host := .host }}
+            {{- $path := .path }}
+            {{- $pathType := .pathType }}
+
+            {{- if not (hasKey $ingressRules (printf "%s-%s" $host $path)) }}
+              {{- $ingressRules = merge $ingressRules (dict (printf "%s-%s" $host $path) (list)) }}
+            {{- end }}
+
+            {{- $serviceName := printf "%s-%s" (include "airflow.fullname" $) (index $serviceTypeMap (include "airflow.fullname" $)) }}
+            {{- $newRule := dict "host" $host "path" $path "pathType" $pathType "port" $port "serviceName" $serviceName "portName" $portName }}
+            {{- $existingRules := index $ingressRules (printf "%s-%s" $host $path) }}
+            {{- $updatedRules := append $existingRules $newRule }}
+            {{- $ingressRules = merge $ingressRules (dict (printf "%s-%s" $host $path) $updatedRules) }}
+
+            {{- if not (hasKey $uniqueHosts $host) }}
+              {{- $uniqueHosts = merge $uniqueHosts (dict $host true) }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+
+      {{- if (len $ingressRules) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $ingressName }}
+  labels:
+    {{- include "airflow.labels" $ | nindent 6 }}
+  annotations:
+    {{- range $key, $value := $container.ingress.annotations }}
+    {{ $key }}: "{{ $value }}"
+    {{- end }}
+spec:
+  {{- if $container.ingress.className }}
+  ingressClassName: {{ $container.ingress.className }}
+  {{- end }}
+  rules:
+    {{- range $key, $rules := $ingressRules }}
+    {{- range $rules }}
+    - host: {{ .host }}
+      http:
+        paths:
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ .serviceName }}
+                port:
+                  number: {{ .port }}
+    {{- end }}
+    {{- end }}
+  {{- if $container.ingress.tls }}
+  tls:
+    - hosts:
+        {{- range $host, $val := $uniqueHosts }}
+        - {{ $host }}
+        {{- end }}
+      secretName: {{- range $rules := $ingressRules }} {{- $firstRule := index $rules 0 }} {{- if $firstRule.portName }} {{ printf "%s-%s-ingress-cert" (include "airflow.fullname" $) $firstRule.portName }} {{- else }} {{ printf "%s-ingress-cert" (include "airflow.fullname" $) }} {{- end }} {{- break }} {{- end }}
+  {{- end }}
+  {{- end }}
+    {{- end }}
+  {{- end }}
+---
+{{- end }}
+
+
+---
+
+
+{{- range .Values.initContainers }}
+  {{- $initContainer := . }}
+  {{- if and (not $initContainer.routes.enabled) $initContainer.ingress.enabled }}
+    {{- $clusterIPServiceFound := false }}
+    {{- $serviceTypeMap := dict }}  # To store service types by service names
+    {{- $fullName := include "airflow.fullname" $ }}
+
+    {{- range .service }}
+      {{- if and .enabled (eq .serviceType "ClusterIP") }}
+        {{- $clusterIPServiceFound = true }}
+        # {{- $serviceName := include "airflow.fullname" $ }}
+        {{- $serviceName := printf "%s-%s" (lower $initContainer.containerName) (lower .serviceType) }}
+        {{- $serviceType := .serviceType | lower }}
+        {{- $serviceTypeMap = merge $serviceTypeMap (dict $serviceName $serviceType) }}
+      {{- end }}
+    {{- end }}
+
+    {{- if $clusterIPServiceFound }}
+      {{- $ingressRules := dict }}
+      {{- $uniqueHosts := dict }}
+
+    {{- $ingressName := printf "%s-%s" (default $fullName $initContainer.containerName | lower) "ingress" }}
+
+      {{- range .ports }}
+        {{- $port := .port }}
+        {{- $portName := .name | default "default" }}
+
+        {{- if .ingressRules }}
+          {{- range .ingressRules }}
+            {{- $host := .host }}
+            {{- $path := .path }}
+            {{- $pathType := .pathType }}
+
+            {{- if not (hasKey $ingressRules (printf "%s-%s" $host $path)) }}
+              {{- $ingressRules = merge $ingressRules (dict (printf "%s-%s" $host $path) (list)) }}
+            {{- end }}
+
+            {{- $serviceName := printf "%s-%s" (include "airflow.fullname" $) (index $serviceTypeMap (include "airflow.fullname" $)) }}
+            {{- $newRule := dict "host" $host "path" $path "pathType" $pathType "port" $port "serviceName" $serviceName "portName" $portName }}
+            {{- $existingRules := index $ingressRules (printf "%s-%s" $host $path) }}
+            {{- $updatedRules := append $existingRules $newRule }}
+            {{- $ingressRules = merge $ingressRules (dict (printf "%s-%s" $host $path) $updatedRules) }}
+
+            {{- if not (hasKey $uniqueHosts $host) }}
+              {{- $uniqueHosts = merge $uniqueHosts (dict $host true) }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+      {{- end }}
+
+      {{- if (len $ingressRules) }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $ingressName }}
+  labels:
+    {{- include "airflow.labels" $ | nindent 6 }}
+  annotations:
+    {{- range $key, $value := $initContainer.ingress.annotations }}
+    {{ $key }}: "{{ $value }}"
+    {{- end }}
+spec:
+  {{- if $initContainer.ingress.className }}
+  ingressClassName: {{ $initContainer.ingress.className }}
+  {{- end }}
+  rules:
+    {{- range $key, $rules := $ingressRules }}
+    {{- range $rules }}
+    - host: {{ .host }}
+      http:
+        paths:
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ .serviceName }}
+                port:
+                  number: {{ .port }}
+    {{- end }}
+    {{- end }}
+  {{- if $initContainer.ingress.tls }}
+  tls:
+    - hosts:
+        {{- range $host, $val := $uniqueHosts }}
+        - {{ $host }}
+        {{- end }}
+      secretName: {{- range $rules := $ingressRules }} {{- $firstRule := index $rules 0 }} {{- if $firstRule.portName }} {{ printf "%s-%s-ingress-cert" (include "airflow.fullname" $) $firstRule.portName }} {{- else }} {{ printf "%s-ingress-cert" (include "airflow.fullname" $) }} {{- end }} {{- break }} {{- end }}
+  {{- end }}
+  {{- end }}
+    {{- end }}
+  {{- end }}
+---
+{{- end }}
