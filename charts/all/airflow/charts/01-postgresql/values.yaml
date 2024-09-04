@@ -43,9 +43,9 @@ configmapEnv:
   - name: ""
     data:
       POSTGRESQL_ADMIN_PASSWORD: admin123$
-      POSTGRESQL_DATABASE: hivemetadb
-      POSTGRESQL_PASSWORD: hivemeta123$
-      POSTGRESQL_USER: hive
+      POSTGRESQL_DATABASE: airflowdb
+      POSTGRESQL_PASSWORD: airflow123$
+      POSTGRESQL_USER: airflow
 
 volumes: 
   - kind: PersistentVolumeClaim
