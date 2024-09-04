@@ -1,0 +1,110 @@
+{{- range .Values.containers }}
+  {{- $container := . }}
+  {{- if and (hasKey . "routes") (hasKey . "ingress") .routes.enabled .ingress.enabled }}
+    {{- fail "Both 'routes.enabled' and 'ingress.enabled' cannot be true at the same time for container '{{ .containerName }}'. Please set only one of them to true." }}
+  {{- end }}
+
+    {{- $fullName := include "airflow.fullname" $ }}
+    {{- $RouteName := printf "%s-%s" (default $fullName $container.containerName | lower) "ingress" }}
+
+  {{- $serviceTypeMap := dict }}
+  {{- $clusterIPServiceFound := false }}
+  {{- range .service }}
+    {{- if eq .serviceType "ClusterIP" }}
+      {{- $clusterIPServiceFound = true }}
+      {{- $serviceName := printf "%s-%s" (lower $container.containerName) (lower .serviceType) }}
+      # {{- $serviceName := printf "%s-%s" (include "airflow.fullname" $) (default "" $container.containerName) }}
+      {{- $serviceType := .serviceType | lower }}
+      {{- $serviceTypeMap = merge $serviceTypeMap (dict $serviceName $serviceType) }}
+    {{- end }}
+  {{- end }}
+
+  {{- if and $clusterIPServiceFound (hasKey . "routes") .routes.enabled }}
+    {{- range .ports }}
+    {{- $serviceName := printf "%s-%s" (include "airflow.fullname" $) (index $serviceTypeMap (printf "%s-%s" (include "airflow.fullname" $) (default "" $container.containerName))) }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $RouteName }}
+  labels:
+    {{- include "airflow.labels" $ | nindent 4 }}
+  annotations:
+    {{- if hasKey $container.routes "annotations" }}
+      {{- range $key, $value := $container.routes.annotations }}
+    {{ $key }}: "{{ $value }}"
+      {{- end }}
+    {{- end }}
+spec:
+  subdomain: {{ .subdomainName | default (printf "%s-%s" (include "airflow.fullname" $) (default "default" .name)) }}
+  to:
+    kind: Service
+    name: {{ $serviceName }}
+  port:
+    targetPort: {{ .name }}
+  {{- if and (hasKey $container.routes "tls") $container.routes.tls (hasKey . "routePolicy") }}
+  tls:
+    termination: {{ .routePolicy.termination }}
+    insecureEdgeTerminationPolicy: {{ .routePolicy.insecureEdgeTerminationPolicy }}
+  {{- end }}
+---
+    {{- end }}
+  {{- end }}
+{{- end }}
+
+
+
+---
+
+
+{{- range .Values.initContainers }}
+  {{- $initContainer := . }}
+  {{- if and (hasKey . "routes") (hasKey . "ingress") .routes.enabled .ingress.enabled }}
+    {{- fail "Both 'routes.enabled' and 'ingress.enabled' cannot be true at the same time for container '{{ .containerName }}'. Please set only one of them to true." }}
+  {{- end }}
+
+    {{- $fullName := include "airflow.fullname" $ }}
+    {{- $RouteName := printf "%s-%s" (default $fullName $initContainer.containerName | lower) "ingress" }}
+
+  {{- $serviceTypeMap := dict }}
+  {{- $clusterIPServiceFound := false }}
+  {{- range .service }}
+    {{- if eq .serviceType "ClusterIP" }}
+      {{- $clusterIPServiceFound = true }}
+      {{- $serviceName := printf "%s-%s" (lower $initContainer.containerName) (lower .serviceType) }}
+      # {{- $serviceName := printf "%s-%s" (include "airflow.fullname" $) (default "" $initContainer.containerName) }}
+      {{- $serviceType := .serviceType | lower }}
+      {{- $serviceTypeMap = merge $serviceTypeMap (dict $serviceName $serviceType) }}
+    {{- end }}
+  {{- end }}
+
+  {{- if and $clusterIPServiceFound (hasKey . "routes") .routes.enabled }}
+    {{- range .ports }}
+    {{- $serviceName := printf "%s-%s" (include "airflow.fullname" $) (index $serviceTypeMap (printf "%s-%s" (include "airflow.fullname" $) (default "" $initContainer.containerName))) }}
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ $RouteName }}
+  labels:
+    {{- include "airflow.labels" $ | nindent 4 }}
+  annotations:
+    {{- if hasKey $initContainer.routes "annotations" }}
+      {{- range $key, $value := $initContainer.routes.annotations }}
+    {{ $key }}: "{{ $value }}"
+      {{- end }}
+    {{- end }}
+spec:
+  subdomain: {{ .subdomainName | default (printf "%s-%s" (include "airflow.fullname" $) (default "default" .name)) }}
+  to:
+    kind: Service
+    name: {{ $serviceName }}
+  port:
+    targetPort: {{ .name }}
+  {{- if and (hasKey $initContainer.routes "tls") $initContainer.routes.tls (hasKey . "routePolicy") }}
+  tls:
+    termination: {{ .routePolicy.termination }}
+    insecureEdgeTerminationPolicy: {{ .routePolicy.insecureEdgeTerminationPolicy }}
+  {{- end }}
+---
+    {{- end }}
+  {{- end }}
+{{- end }}

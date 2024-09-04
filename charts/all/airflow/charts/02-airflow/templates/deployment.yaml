@@ -1,0 +1,362 @@
+{{- $chartName := .Chart.Name }}
+{{- $fullName := include "airflow.fullname" . }}
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "airflow.labels" . | nindent 4 }}
+spec:
+
+  ### spec.replicas
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+
+  ### spec.selectors
+  selector:
+    matchLabels:
+      {{- include "airflow.selectorLabels" . | nindent 6 }}
+
+  ### spec.strategy
+  {{- if .Values.strategy }}
+  strategy:
+  {{- toYaml .Values.strategy | nindent 4 }}
+  {{- end }}
+
+  template:
+
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      labels:
+        {{- include "airflow.selectorLabels" . | nindent 8 }}
+
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ .Values.serviceAccount.name | default (printf "%s-sa" .Release.Name) }}
+      {{- end }}
+
+      securityContext:
+      {{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+## Volumes
+      volumes:
+
+        {{- range .Values.volumes }}
+        {{- if eq .type "EmptyDir" }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "coordinator.fullname" $ }}-emptydir{{ end }}
+          emptyDir: {}
+        {{- else if eq .type "PersistentVolumeClaim" }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "coordinator.fullname" $ }}-persistent{{ end }}
+          persistentVolumeClaim:
+            claimName: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "coordinator.fullname" $ }}-persistent{{ end }}
+        {{- end }}
+        {{- end }}
+        ##########################
+        {{- range .Values.containers }}
+        {{- range .secretsEnv }}
+        {{- if .mount }}
+        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+          secret:
+            secretName: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+            {{- if .filePath }}
+            items:
+              {{- range $item := .data }}
+              - key: {{ $item.name }}
+                path: {{ $item.name }}
+              {{- end }}
+            {{- else }}
+            items:
+              {{- range $key, $value := .data }}
+              - key: {{ $key }}
+                path: {{ $key }}
+              {{- end }}
+            {{- end }}
+        {{- end }}
+        {{- end }}
+
+        {{- range .configmapEnv }}
+        {{- if .mount }}
+        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+          configMap:
+            name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+        {{- end }}
+        {{- end }}
+
+        {{- range .volumes }}
+        {{- if eq .type "EmptyDir" }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-emptydir{{ end }}
+          emptyDir: {}
+        
+        {{- else if eq .type "PersistentVolumeClaim" }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-persistent{{ end }}
+          persistentVolumeClaim:
+            claimName: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-persistent{{ end }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+
+
+        {{- range .Values.initContainers }}
+        {{- range .secretsEnv }}
+        {{- if .mount }}
+        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+          secret:
+            secretName: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+            {{- if .filePath }}
+            items:
+              {{- range $item := .data }}
+              - key: {{ $item.name }}
+                path: {{ $item.name }}
+              {{- end }}
+            {{- else }}
+            items:
+              {{- range $key, $value := .data }}
+              - key: {{ $key }}
+                path: {{ $key }}
+              {{- end }}
+            {{- end }}
+        {{- end }}
+        {{- end }}
+
+        {{- range .configmapEnv }}
+        {{- if .mount }}
+        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+          configMap:
+            name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+        {{- end }}
+        {{- end }}
+
+        {{- range .volumes }}
+        {{- if eq .type "EmptyDir" }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-emptydir{{ end }}
+          emptyDir: {}
+        
+        {{- else if eq .type "PersistentVolumeClaim" }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-persistent{{ end }}
+          persistentVolumeClaim:
+            claimName: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-persistent{{ end }}
+        {{- end }}
+        {{- end }}
+        {{- end }}
+
+
+##### Init Containers
+
+      initContainers:
+        {{- range .Values.initContainers }}
+        - name: {{ .containerName | default $chartName  }}
+
+          image: {{ .image.registry }}/{{ .image.username }}/{{ .image.name }}:{{ .image.tag | default "latest" }}
+
+          imagePullPolicy: {{ .image.pullPolicy }}
+
+          {{- if .args }}
+          args:
+            {{- toYaml .args | nindent 12 }}
+          {{- end }}         
+
+          securityContext:
+            {{- toYaml .securityContext | nindent 12 }}
+
+          ports:
+            {{- range $index, $port := .ports }}
+            - name: {{ $port.name | default (printf "port-%d" $index) }}
+              containerPort: {{ $port.port }}
+              protocol: {{ $port.protocol | default "TCP" }}
+            {{- end }}
+
+#### Environments
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+          {{- if .env }}
+            {{ toYaml .env | nindent 12 }}
+          {{- end }}
+
+            {{- range .secretsEnv }}
+            {{- $config := . }}
+            {{- if not $config.filePath }}
+              {{- range $key, $value := $config.data }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+                  key: {{ $key }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+
+            {{- range .configmapEnv }}
+            {{- $config := . }}
+            {{- if not $config.filePath }}
+              {{- range $key, $value := $config.data }}
+            - name: {{ $key }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+                  key: {{ $key }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+
+#### Resources
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+
+#### Volume Mounts
+          volumeMounts:
+
+          {{- if .volumeMounts }}
+            {{ toYaml .volumeMounts | nindent 12 }}
+          {{- end }}
+
+            {{- range .secretsEnv }}
+            {{- if .mount }}
+            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- end }}
+            {{- end }}
+           
+            {{- range .configmapEnv }}
+            {{- if .mount }}
+            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- end }}
+            {{- end }}
+           
+            {{- range .volumes }}
+            {{- if eq .type "EmptyDir" }}
+            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-emptydir{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- else if eq .type "PersistentVolumeClaim" }}
+            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-persistent{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- end }}
+            {{- end }}
+        {{- end }}
+
+##### Containers
+      containers:
+        {{- range .Values.containers }}
+        - name: {{ .containerName | default $chartName  }}
+
+          image: {{ .image.registry }}/{{ .image.username }}/{{ .image.name }}:{{ .image.tag | default "latest" }}
+
+          imagePullPolicy: {{ .image.pullPolicy }}
+
+          {{- if .args }}
+          args:
+            {{- toYaml .args | nindent 12 }}
+          {{- end }}         
+
+          securityContext:
+            {{- toYaml .securityContext | nindent 12 }}
+
+          ports:
+            {{- range $index, $port := .ports }}
+            - name: {{ $port.name | default (printf "port-%d" $index) }}
+              containerPort: {{ $port.port }}
+              protocol: {{ $port.protocol | default "TCP" }}
+            {{- end }}
+
+#### Environments
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+          {{- if .env }}
+            {{ toYaml .env | nindent 12 }}
+          {{- end }}
+
+            {{- range .secretsEnv }}
+            {{- $config := . }}
+            {{- if not $config.filePath }}
+              {{- range $key, $value := $config.data }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+                  key: {{ $key }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+
+            {{- range .configmapEnv }}
+            {{- $config := . }}
+            {{- if not $config.filePath }}
+              {{- range $key, $value := $config.data }}
+            - name: {{ $key }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+                  key: {{ $key }}
+              {{- end }}
+            {{- end }}
+            {{- end }}
+
+#### Resources
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+
+#### Volume Mounts
+          volumeMounts:
+
+          {{- if .volumeMounts }}
+            {{ toYaml .volumeMounts | nindent 14 }}
+          {{- end }}
+
+            {{- range .secretsEnv }}
+            {{- if .mount }}
+            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-secret{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- end }}
+            {{- end }}
+           
+            {{- range .configmapEnv }}
+            {{- if .mount }}
+            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- end }}
+            {{- end }}
+           
+            {{- range .volumes }}
+            {{- if eq .type "EmptyDir" }}
+            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-emptydir{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- else if eq .type "PersistentVolumeClaim" }}
+            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "airflow.fullname" $ }}-persistent{{ end }}
+              mountPath: {{ .mountPath | default "/" }}
+            {{- end }}
+            {{- end }}
+        {{- end }}
