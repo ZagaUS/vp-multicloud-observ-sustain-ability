@@ -58,10 +58,10 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ if .name }}{{ .name }}{{ else }}{{ include "minio.fullname" $ }}-configmap{{ end }}
+  name: {{ if .name }}{{ .name }}{{ else }}{{ include "airflow.fullname" $ }}-configmap{{ end }}
   labels:
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
-    app.kubernetes.io/part-of: {{ include "minio.fullname" $ }}
+    app.kubernetes.io/part-of: {{ include "airflow.fullname" $ }}
     app.kubernetes.io/managed-by: Helm
 data:
 {{- if kindIs "slice" .data }}

@@ -23,12 +23,27 @@ initContainers:
         exec airflow db migrate ; airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin ;
 
     env:
+      - name: DB_NAME
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_NAME
+      - name: DB_USER
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_USER
+      - name: DB_PASS
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_PASS
       - name: AIRFLOW__CORE__EXECUTOR
         value: LocalExecutor
       - name: AIRFLOW__CORE__LOAD_EXAMPLES
         value: 'False'
       - name: DB_HOST
-        value: airflow-postgresql    
+        value: airflow-postgresql-clusterip
       - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
         value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
       - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
@@ -65,7 +80,11 @@ initContainers:
     resources: {}
 
     securityContext: {}
+
+    mountVolumes: {}
   
+ ############################## 
+
   - containerName: "add-airflow-admin"
 
     image:
@@ -90,12 +109,27 @@ initContainers:
         exec airflow users  create --role Admin --username admin --email admin --firstname admin --lastname admin --password admin ;
 
     env:
+      - name: DB_NAME
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_NAME
+      - name: DB_USER
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_USER
+      - name: DB_PASS
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_PASS
       - name: AIRFLOW__CORE__EXECUTOR
         value: LocalExecutor
       - name: AIRFLOW__CORE__LOAD_EXAMPLES
         value: 'False'
       - name: DB_HOST
-        value: airflow-postgresql    
+        value: airflow-postgresql-clusterip
       - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
         value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
       - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
@@ -132,6 +166,8 @@ initContainers:
     resources: {}
 
     securityContext: {}
+
+####################################
 
   - containerName: "deploydagsfroms3"
 
@@ -158,11 +194,18 @@ initContainers:
       - name: S3_BUCKET_URL
         value: 'http://minio:9000'
 
+    volumeMounts:
+      - name: mcconfig
+        mountPath: /.mc
+      - name: dags-data
+        mountPath: /opt/airflow/dags
+
     secretsEnv:
       - name: dag-deployment
         data:
           S3_ACCESS_KEY: minioAdmin
           S3_SECRET_KEY: minio1234
+
 
     configmapEnv: {}
 
@@ -223,6 +266,21 @@ containers:
       - exec airflow webserver
 
     env:
+      - name: DB_NAME
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_NAME
+      - name: DB_USER
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_USER
+      - name: DB_PASS
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_PASS
       - name: AIRFLOW__CORE__EXECUTOR
         value: LocalExecutor
       - name: AIRFLOW__LOGGING__LOGGING_LEVEL
@@ -232,7 +290,7 @@ containers:
       - name: CURL_CA_BUNDLE
         value: ''
       - name: DB_HOST
-        value: airflow-postgresql
+        value: airflow-postgresql-clusterip
       - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
         value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
       - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
@@ -272,10 +330,19 @@ containers:
 
     volumes: {}
 
+    volumeMounts:
+      - name: dags-data
+        mountPath: /opt/airflow/dags
+      - name: dags-generated-data
+        mountPath: /opt/airflow/dag_generated_configs
+      - name: dags-log
+        mountPath: /opt/airflow/logs
+
     resources: {}
 
     securityContext: {}
 
+######################################################
 
   - containerName: "scheduler"
 
@@ -300,12 +367,27 @@ containers:
       - exec airflow scheduler
 
     env:
+      - name: DB_NAME
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_NAME
+      - name: DB_USER
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_USER
+      - name: DB_PASS
+        valueFrom:
+          secretKeyRef:
+            name: airflow-postgresql
+            key: DB_PASS
       - name: AIRFLOW__CORE__EXECUTOR
         value: LocalExecutor
       - name: AIRFLOW__CORE__LOAD_EXAMPLES
         value: 'False'
       - name: DB_HOST
-        value: airflow-postgresql
+        value: airflow-postgresql-clusterip
       - name: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN
         value: 'postgresql://$(DB_USER):$(DB_PASS)@$(DB_HOST):5432/$(DB_NAME)'
       - name: AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION
@@ -345,9 +427,73 @@ containers:
 
     volumes: {}
 
+    volumeMounts:
+      - name: dags-data
+        mountPath: /opt/airflow/dags
+      - name: dags-generated-data
+        mountPath: /opt/airflow/dag_generated_configs
+      - name: dags-log
+        mountPath: /opt/airflow/logs
+
     resources: {}
 
     securityContext: {}
+
+######################################################
+
+  - containerName: "mc"
+
+    image:
+      registry: quay.io
+      username: osclimate
+      name: minioclient
+      pullPolicy: IfNotPresent
+      tag: '1.7'
+
+    ports: {}
+
+    service: {}
+
+    routes: {}
+
+    ingress: {}
+
+    args: {}
+
+    env:
+      - name: S3_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: dag-deployment
+            key: S3_ACCESS_KEY
+      - name: S3_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: dag-deployment
+            key: S3_SECRET_KEY
+      - name: DEPLOYMENT_TYPE
+        value: sidecar
+      - name: S3_BUCKET_URL
+        value: 'http://minio:9000'
+
+    secretsEnv: {}
+
+    configmapEnv: {}
+
+    volumes: {}
+
+    volumeMounts:
+      - name: mcconfig
+        mountPath: /.mc
+      - name: dags-data
+        mountPath: /opt/airflow/dags
+      - name: dags-log
+        mountPath: /opt/airflow/logs
+
+    resources: {}
+
+    securityContext: {}
+
 
 ############################################################
 
@@ -383,12 +529,15 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
+configmapEnv: {}
+
 secretsEnv:
   - name: airflow-postgresql
     data:
       DB_NAME: airflowdb
       DB_USER: airflow
       DB_PASS: airflow123$
+      ADMIN_PASSWORD: admin123$
 
 volumes:
   - type: EmptyDir
@@ -402,4 +551,7 @@ volumes:
     mountPath: /opt/airflow/dag_generated_configs
   - type: EmptyDir
     volumeName: "dags-log"
+    mountPath: /opt/airflow/logs
+  - type: EmptyDir
+    volumeName: "config"
     mountPath: /opt/airflow/logs
