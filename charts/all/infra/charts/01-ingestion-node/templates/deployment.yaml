@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "ingestion-logs.fullname" . }}
+  name: {{ include "ingestion-node.fullname" . }}
   labels:
-    {{- include "ingestion-logs.labels" . | nindent 4 }}
+    {{- include "ingestion-node.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "ingestion-logs.selectorLabels" . | nindent 6 }}
+      {{- include "ingestion-node.selectorLabels" . | nindent 6 }}
   strategy:
     type: {{ default "RollingUpdate" .Values.image.strategy }}
   template:
@@ -20,14 +20,14 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "ingestion-logs.selectorLabels" . | nindent 8 }}
+        {{- include "ingestion-node.selectorLabels" . | nindent 8 }}
     spec:
       volumes:
         {{- range .Values.secretsEnv }}
         {{- if .mount }}
-        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-secret{{ end }}
+        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-secret{{ end }}
           secret:
-            secretName: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-secret{{ end }}
+            secretName: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-secret{{ end }}
             {{- if .filePath }}
             items:
               {{- range $item := .data }}
@@ -45,19 +45,19 @@ spec:
         {{- end }}
         {{- range .Values.configmapEnv }}
         {{- if .mount }}
-        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-configmap{{ end }}
+        - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-configmap{{ end }}
           configMap:
-            name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-configmap{{ end }}
+            name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-configmap{{ end }}
         {{- end }}
         {{- end }}
         {{- range .Values.volumes }}
         {{- if eq .type "EmptyDir" }}
-        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-emptydir{{ end }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-node.fullname" $ }}-emptydir{{ end }}
           emptyDir: {}
         {{- else if eq .type "PersistentVolumeClaim" }}
-        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-persistent{{ end }}
+        - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-node.fullname" $ }}-persistent{{ end }}
           persistentVolumeClaim:
-            claimName: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-persistent{{ end }}
+            claimName: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-node.fullname" $ }}-persistent{{ end }}
         {{- end }}
         {{- end }}
       {{- with .Values.imagePullSecrets }}
@@ -98,7 +98,7 @@ spec:
             - name: {{ $key }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-secret{{ end }}
+                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-secret{{ end }}
                   key: {{ $key }}
             {{- end }}
           {{- end }}
@@ -111,7 +111,7 @@ spec:
             - name: {{ $key }}
               valueFrom:
                 configMapKeyRef:
-                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-configmap{{ end }}
+                  name: {{ if $config.name }}{{ $config.name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-configmap{{ end }}
                   key: {{ $key }}
             {{- end }}
           {{- end }}
@@ -121,22 +121,22 @@ spec:
           volumeMounts:
             {{- range .Values.secretsEnv }}
             {{- if .mount }}
-            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-secret{{ end }}
+            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-secret{{ end }}
               mountPath: {{ .mountPath | default "/" }}
             {{- end }}
             {{- end }}
             {{- range .Values.configmapEnv }}
             {{- if .mount }}
-            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-configmap{{ end }}
+            - name: {{ if .name }}{{ .name }}{{ else }}{{ include "ingestion-node.fullname" $ }}-configmap{{ end }}
               mountPath: {{ .mountPath | default "/" }}
             {{- end }}
             {{- end }}
             {{- range .Values.volumes }}
             {{- if eq .type "EmptyDir" }}
-            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-emptydir{{ end }}
+            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-node.fullname" $ }}-emptydir{{ end }}
               mountPath: {{ .mountPath | default "/" }}
             {{- else if eq .type "PersistentVolumeClaim" }}
-            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-logs.fullname" $ }}-persistent{{ end }}
+            - name: {{ if .volumeName }}{{ .volumeName }}{{ else }}{{ include "ingestion-node.fullname" $ }}-persistent{{ end }}
               mountPath: {{ .mountPath | default "/" }}
             {{- end }}
             {{- end }}

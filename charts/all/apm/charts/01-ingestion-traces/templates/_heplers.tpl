@@ -44,14 +44,3 @@ Selector labels
 {{- define "ingestion-traces.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "ingestion-traces.fullname" . }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "ingestion-traces.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "ingestion-traces.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}

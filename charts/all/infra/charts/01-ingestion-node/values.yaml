@@ -5,9 +5,9 @@ containerName: ""
 image:
   registry: quay.io
   username: zagaos
-  name: apm-ingestion-pyiceberg
+  name: infra-ingestion-pyiceberg
   pullPolicy: IfNotPresent
-  tag: ecfa9ce
+  tag: cb2da23
   strategy: ""
 
 imagePullSecrets: []
@@ -42,12 +42,12 @@ configmapEnv:
     mountPath: ""
     filePath: false
     data:
-      BUCKET_NAME: 's3a://observability-traces/traces'
-      CONSUMER_GROUP_ID: apmtraces
-      KAFKA_TOPIC: apmtraces
-      NAME_SPACE: apm_traces
-      SCRIPT_TO_RUN: traces
-      TABLE_NAME: traces
+      KAFKA_TOPIC: nodestats
+      TABLE_NAME: node
+      NAME_SPACE: infra_node
+      CONSUMER_GROUP_ID: 'node_ingestion'
+      SCRIPT_TO_RUN: node
+      BUCKET_NAME: 's3a://observability-infra-node/node'
       KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
       URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
       S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'

@@ -1,5 +1,7 @@
 replicaCount: 1
 
+containerName: ""
+
 image:
   registry: quay.io
   username: zagaos
@@ -15,45 +17,18 @@ fullnameOverride: ""
 podAnnotations: {}
 
 podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext:
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-  # runAsGroup: 1000
 
 serviceAccount:
   create: false
-  automount: false
   annotations: {}
   name: ""
 
-ports:
-  - name: 8080-tcp
-    port: 8080
-    protocol: TCP
-    targetPort: 8080
-    # subdomainName: infra-query-insecure
-    # tls:
-    #   enabled: false
-      # termination: edge
-      # insecureEdgeTerminationPolicy: Redirect
+securityContext: {}
 
-# routes:
-#   enabled: true
-
-# ingress:
-#   enabled: false
-#   domain: apps.zagaopenshift.zagaopensource.com
-#   annotations:
-#     cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+ports: {}
 
 service:
-  - enabled: true
+  - enabled: false
     serviceType: ClusterIP
   - enabled: false
     serviceType: LoadBalancer
@@ -62,7 +37,7 @@ service:
 secretsEnv: {}
 
 configmapEnv:
-  - name: 
+  - name: ""
     mount: ""
     mountPath: ""
     filePath: false
@@ -81,34 +56,19 @@ configmapEnv:
 
 probes:
   readiness:
+
   liveness:
 
+
 volumes: {}
-  # - type: PersistentVolumeClaim
-  #   apiVersion: v1
-  #   accessModes: ReadWriteOnce
-  #   volumeName: ""
-  #   mountPath: /storage
-  #   storageSize: "80Gi"
-  # - type: EmptyDir
-  #   volumeName: ""
-  #   mountPath: /empty-dir
 
 resources: {}
-  # limits:
-  #   cpu: 600m
-  #   memory: 1128Mi
-  # requests:
-  #   cpu: 600m
-  #   memory: 1128Mi
 
 autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
 
 nodeSelector: {}
 

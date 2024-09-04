@@ -5,9 +5,9 @@ containerName: ""
 image:
   registry: quay.io
   username: zagaos
-  name: apm-query-pyiceberg
+  name: infra-dashboard-observai
   pullPolicy: IfNotPresent
-  tag: ce4cdad
+  tag: v1
   strategy: ""
 
 imagePullSecrets: []
@@ -27,11 +27,11 @@ serviceAccount:
 
 
 ports:
-  - name: https
-    subdomainName: infra-query
-    port: 8000
+  - name: http
+    port: 8080
     protocol: TCP
-    targetPort: 8000
+    targetPort: 8080
+    subdomainName: infra-dashboard
     routePolicy:
       termination: edge
       insecureEdgeTerminationPolicy: Redirect
@@ -52,25 +52,11 @@ ingress:
   className: ""
   tls: false
   annotations: {}
+    # cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
 
 secretsEnv: {}
 
-configmapEnv:
-  - name: ""
-    mount: ""
-    mountPath: ""
-    data:
-      PY_IO_IMPL: pyiceberg.io.pyarrow.PyArrowFileIO
-      MINIO_SECRET_ACCSESS_KEY: minio1234
-      TRACE_NAME_SPACE: apm_traces
-      LOG_NAME_SPACE: apm_logs
-      MINIO_ACCSESS_KEY_ID: minioAdmin
-      METRICS_NAME_SPACE: apm_metrics
-      HIVE_THRIFT_URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
-      TRACE_TABLE_NAME: traces_data
-      LOG_TABLE_NAME: logs_data
-      METRICS_TABLE_NAME: metrics_data
-      MINIO_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+configmapEnv: {}
 
 probes:
   readiness:

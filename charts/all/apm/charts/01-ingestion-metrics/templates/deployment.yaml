@@ -64,23 +64,21 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "ingestion-metrics.serviceAccountName" . }}
+      {{- if .Values.serviceAccount.create }} # Check if 'serviceAccount.create' is true
+      serviceAccountName: {{ .Values.serviceAccount.name | default (printf "%s-sa" .Release.Name) }} # Generate or use provided name
+      {{- end }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Values.containerName | default .Chart.Name }}
           image: {{ .Values.image.registry }}/{{ .Values.image.username }}/{{ .Values.image.name }}:{{ .Values.image.tag | default "latest" }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.args }} # Check if 'args' is present in values.yaml
+          args:
+            {{- toYaml .Values.args | nindent 12 }}
+          {{- end }}         
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          {{- if .Values.probes.readiness }}
-          readinessProbe:
-            {{- toYaml .Values.probes.readiness | nindent 12 }}
-          {{- end }}
-          {{- if .Values.probes.liveness }}
-          livenessProbe:
-            {{- toYaml .Values.probes.liveness | nindent 12 }}
-          {{- end }}
           ports:
             {{- range $index, $port := .Values.ports }}
             - name: {{ $port.name | default (printf "port-%d" $index) }}

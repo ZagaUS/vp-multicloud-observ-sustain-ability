@@ -6,3 +6,434 @@ subcharts:
   ingestion-events: true
   query: true
   dashboard: true
+
+#############################################################
+
+ingestion-node:
+
+  replicaCount: 1
+
+  containerName: ""
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: infra-ingestion-pyiceberg
+    pullPolicy: IfNotPresent
+    tag: cb2da23
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  securityContext: {}
+
+  ports: {}
+
+  service:
+    - enabled: false
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+
+  configmapEnv:
+    - name: ""
+      mount: ""
+      mountPath: ""
+      filePath: false
+      data:
+        KAFKA_TOPIC: nodestats
+        TABLE_NAME: node
+        NAME_SPACE: infra_node
+        CONSUMER_GROUP_ID: 'node_ingestion'
+        SCRIPT_TO_RUN: node
+        BUCKET_NAME: 's3a://observability-infra-node/node'
+        KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+        URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+        S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+        ACCESS_KEY: minioAdmin
+        SECRET_KEY: minio1234
+
+  probes:
+    readiness:
+
+    liveness:
+
+
+  volumes: {}
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+############################################################
+
+ingestion-pod:
+
+  replicaCount: 1
+
+  containerName: ""
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: infra-ingestion-pyiceberg
+    pullPolicy: IfNotPresent
+    tag: ecfa9ce
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  securityContext: {}
+
+  ports: {}
+
+  service:
+    - enabled: false
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+
+  configmapEnv:
+    - name: ""
+      mount: ""
+      mountPath: ""
+      filePath: false
+      data:
+        KAFKA_TOPIC: podstats
+        TABLE_NAME: pod
+        NAME_SPACE: infra_pod
+        CONSUMER_GROUP_ID: 'pod_ingestion'
+        SCRIPT_TO_RUN: pod
+        BUCKET_NAME: 's3a://observability-infra-pod/pod'
+        KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+        URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+        S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+        ACCESS_KEY: minioAdmin
+        SECRET_KEY: minio1234
+
+  probes:
+    readiness:
+
+    liveness:
+
+
+  volumes: {}
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+
+############################################################
+
+ingestion-events: 
+
+  replicaCount: 1
+
+  containerName: ""
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: infra-ingestion-pyiceberg
+    pullPolicy: IfNotPresent
+    tag: cb2da23
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+  securityContext: {}
+
+  ports: {}
+
+  service:
+    - enabled: false
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+
+  secretsEnv: {}
+
+  configmapEnv:
+    - name: ""
+      mount: ""
+      mountPath: ""
+      filePath: false
+      data:
+        KAFKA_TOPIC: k8sevents
+        TABLE_NAME: event
+        NAME_SPACE: infra_event
+        CONSUMER_GROUP_ID: event_ingestion
+        SCRIPT_TO_RUN: event
+        BUCKET_NAME: s3a://observability-infra-event/event
+        KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+        URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+        S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+        ACCESS_KEY: minioAdmin
+        SECRET_KEY: minio1234
+
+  probes:
+    readiness:
+
+    liveness:
+
+
+  volumes: {}
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+  ############################################################
+
+query:
+
+  replicaCount: 1
+
+  containerName: ""
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: infra-pyiceberg-query
+    pullPolicy: IfNotPresent
+    tag: v4
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+
+  securityContext: {}
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+
+  ports:
+    - name: https
+      subdomainName: infra-query
+      port: 8000
+      protocol: TCP
+      targetPort: 8000
+      routePolicy:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+
+  service:
+    - enabled: true
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+  routes:
+    enabled: true
+    tls: false
+    annotations: {}
+
+  ingress:
+    enabled: false
+    className: ""
+    tls: false
+    annotations: {}
+
+  secretsEnv: {}
+
+  configmapEnv:
+    - name: ""
+      mount: ""
+      mountPath: ""
+      data:
+        HIVE_THRIFT_URI: thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083
+        MINIO_ACCSESS_KEY_ID: minioAdmin
+        MINIO_SECRET_ACCSESS_KEY: minio1234
+        PY_IO_IMPL: pyiceberg.io.pyarrow.PyArrowFileIO
+        MINIO_ENDPOINT: http://minio.observability-datamesh.svc.cluster.local:9000
+        NODE_TABLE_NAME: node
+        NODE_NAME_SPACE: infra_node
+        POD_TABLE_NAME: pod
+        POD_NAME_SPACE: infra_pod
+        EVENT_NAME_SPACE: infra_event
+        EVENT_TABLE_NAME: event
+
+  probes:
+    readiness:
+    liveness:
+
+  volumes: {}
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+######################################################################
+
+dashboard:
+
+  replicaCount: 1
+
+  containerName: ""
+
+  image:
+    registry: quay.io
+    username: zagaos
+    name: infra-dashboard-observai
+    pullPolicy: IfNotPresent
+    tag: v1
+    strategy: ""
+
+  imagePullSecrets: []
+  nameOverride: ""
+  fullnameOverride: ""
+
+  podAnnotations: {}
+
+  podSecurityContext: {}
+
+  securityContext: {}
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ""
+
+
+  ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+      subdomainName: infra-dashboard
+      routePolicy:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+
+  service:
+    - enabled: true
+      serviceType: ClusterIP
+    - enabled: false
+      serviceType: LoadBalancer
+
+  routes:
+    enabled: true
+    tls: false
+    annotations: {}
+
+  ingress:
+    enabled: false
+    className: ""
+    tls: false
+    annotations: {}
+      # cert-manager.io/cluster-issuer: zagaadmin-cluster-issuer
+
+  secretsEnv: {}
+
+  configmapEnv: {}
+
+  probes:
+    readiness:
+    liveness:
+
+  volumes: {}
+
+  resources: {}
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}

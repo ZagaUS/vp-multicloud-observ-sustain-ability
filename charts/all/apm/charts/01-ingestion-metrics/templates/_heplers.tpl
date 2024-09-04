@@ -44,14 +44,3 @@ Selector labels
 {{- define "ingestion-metrics.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "ingestion-metrics.fullname" . }}
 {{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "ingestion-metrics.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "ingestion-metrics.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
