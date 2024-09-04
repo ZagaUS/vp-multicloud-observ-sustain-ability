@@ -1,0 +1,80 @@
+replicaCount: 1
+
+containerName: ""
+
+image:
+  registry: quay.io
+  username: zagaos
+  name: sustainability-ingestion-pyiceberg
+  pullPolicy: IfNotPresent
+  tag: eb43ac1
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+args: {}
+
+ports: {}
+
+
+service:
+  - enabled: false
+    serviceType: ClusterIP
+  - enabled: false
+    serviceType: LoadBalancer
+
+
+secretsEnv: {}
+
+configmapEnv:
+  - name: ""
+    # mount: ""
+    # mountPath: ""
+    data:
+      ACCESS_KEY: minioAdmin
+      KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+      S3_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+      SECRET_KEY: minio1234
+      URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+      BUCKET_NAME: 's3a://powerlevel-data/powerdatas'
+      CONSUMER_GROUP_ID: sustaingroup
+      KAFKA_TOPIC: containerpowerlevel
+      NAME_SPACE: sustainability
+      SCRIPT_TO_RUN: podpowerlevel
+      TABLE_NAME: sustain
+
+volumes: {}
+
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

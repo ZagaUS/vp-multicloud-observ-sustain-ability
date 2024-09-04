@@ -1,0 +1,95 @@
+replicaCount: 1
+
+containerName: ""
+
+image:
+  registry: quay.io
+  username: zagaos
+  name: sustainability-query-pyiceberg
+  pullPolicy: IfNotPresent
+  tag: v8
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+args: {}
+
+ports:
+  - name: 8000-tcp
+    port: 8000
+    protocol: TCP
+    targetPort: 8000
+    tls:
+      enabled: false
+
+
+service:
+  - enabled: true
+    serviceType: ClusterIP
+  - enabled: false
+    serviceType: LoadBalancer
+
+configmapEnv:
+  - name: ""
+    data:
+      SUSTAIN_NAME_SPACE: sustainability
+      SUSTAIN_TABLE_NAME: sustain
+      NODE_TABLE_NAME: sustainnode
+      NODE_NAME_SPACE: sustainabilitynode
+
+      KAFKA_BOOTSTRAP_SERVER: 'telemetry-kafka-bootstrap.observability-kafka.svc.cluster.local:9092'
+
+      MINIO_ENDPOINT: 'http://minio.observability-datamesh.svc.cluster.local:9000'
+      MINIO_ACCSESS_KEY_ID: minioAdmin
+      MINIO_SECRET_ACCSESS_KEY: minio1234
+      PY_IO_IMPL: pyiceberg.io.pyarrow.PyArrowFileIO
+      HIVE_THRIFT_URI: 'thrift://hive-metastore.observability-datamesh.svc.cluster.local:9083'
+
+volumes: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+resources: 
+  limits:
+    cpu: 450m
+    memory: 3Gi
+  requests:
+    cpu: 400m
+    memory: 2Gi
+
+routes:
+  enabled: true
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+probes:
+  readiness:
+  liveness:
+
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
